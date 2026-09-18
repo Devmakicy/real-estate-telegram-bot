@@ -46,7 +46,21 @@ async def get_or_create_topic(
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, telegram_id)
         if user and user.topic_id:
-            return user.topic_id
+            try:
+                await bot.send_chat_action(
+                    ADMIN_GROUP_ID,
+                    "typing",
+                    message_thread_id=user.topic_id,
+                )
+                return user.topic_id
+            except TelegramBadRequest:
+                logger.warning(
+                    "Stale topic_id=%s for user %s, creating new",
+                    user.topic_id,
+                    telegram_id,
+                )
+                user.topic_id = None
+                await session.commit()
 
         topic_name = format_topic_name(
             SimpleNamespace(
@@ -106,6 +120,7 @@ async def mirror_client_message(bot: Bot, message: Message) -> None:
 
     topic_id = await get_or_create_topic(bot, message.from_user)
     if not topic_id:
+        logger.warning("Mirror skipped: no topic for user %s", message.from_user.id)
         return
 
     try:

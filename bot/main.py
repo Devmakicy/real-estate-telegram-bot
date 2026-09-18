@@ -38,14 +38,35 @@ async def main() -> None:
 
     bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher(storage=MemoryStorage())
-    if ADMIN_GROUP_ID:
-        dp.message.middleware(MirrorMiddleware())
+    dp.message.middleware(MirrorMiddleware())
     dp.include_router(setup_routers())
 
     await set_bot_description(bot)
+    await validate_setup(bot)
 
     logger.info("Bot started")
     await dp.start_polling(bot)
+
+
+async def validate_setup(bot: Bot) -> None:
+    if not ADMIN_GROUP_ID:
+        logger.error(
+            "ADMIN_GROUP_ID not set! Topics disabled. "
+            "Add ADMIN_GROUP_ID=-1004338467125 to Railway Variables."
+        )
+        return
+    try:
+        chat = await bot.get_chat(ADMIN_GROUP_ID)
+        me = await bot.get_me()
+        member = await bot.get_chat_member(ADMIN_GROUP_ID, me.id)
+        logger.info(
+            "Admin group OK: %s | forum=%s | bot=%s",
+            chat.title,
+            getattr(chat, "is_forum", False),
+            member.status,
+        )
+    except Exception as e:
+        logger.error("Cannot access admin group %s: %s", ADMIN_GROUP_ID, e)
 
 
 if __name__ == "__main__":
