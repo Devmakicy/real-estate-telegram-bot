@@ -25,7 +25,11 @@ async def set_bot_description(bot: Bot) -> None:
 
 async def main() -> None:
     if not BOT_TOKEN:
-        raise ValueError("BOT_TOKEN is not set. Copy .env.example to .env and fill it in.")
+        raise ValueError(
+            "BOT_TOKEN is not set. "
+            "Locally: copy .env.example to .env. "
+            "On Railway: Service → Variables → add BOT_TOKEN."
+        )
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
