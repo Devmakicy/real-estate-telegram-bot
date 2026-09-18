@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Заявка #{{ order.id }} — Админка</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Заявка #{{ order.id }}</h1>
+      <div class="header-actions">
+        <a href="/" class="btn btn-secondary">← Назад</a>
+        <a href="/logout" class="btn btn-secondary">Выйти</a>
+      </div>
+    </header>
+
+    {% if request.query_params.get('updated') %}
+    <div class="alert alert-success">Статус обновлён, клиент уведомлён</div>
+    {% endif %}
+    {% if request.query_params.get('sent') %}
+    <div class="alert alert-success">Сообщение отправлено клиенту</div>
+    {% endif %}
+
+    <div class="detail-grid">
+      <div>
+        <div class="card">
+          <h2>Данные заявки</h2>
+          <div class="info-row">
+            <span class="label">Статус</span>
+            <span class="badge {{ status_badge[order.status] }}">{{ status_labels[order.status] }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Дата</span>
+            <span>{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+          </div>
+          {% if order.link %}
+          <div class="info-row">
+            <span class="label">Ссылка</span>
+            <span><a href="{{ order.link }}" target="_blank">{{ order.link }}</a></span>
+          </div>
+          {% endif %}
+          {% if order.text %}
+          <div class="info-row" style="flex-direction:column;gap:8px">
+            <span class="label">Комментарий клиента</span>
+            <span>{{ order.text }}</span>
+          </div>
+          {% endif %}
+          {% if order.admin_note %}
+          <div class="info-row" style="flex-direction:column;gap:8px">
+            <span class="label">Заметка админа</span>
+            <span>{{ order.admin_note }}</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="card">
+          <h2>Фотографии ({{ order.photos|length }})</h2>
+          <p style="color:var(--muted);font-size:14px;margin-bottom:12px">
+            Фото хранятся в Telegram. Откройте заявку в боте командой <code>/order {{ order.id }}</code> для просмотра.
+          </p>
+          <div class="photos-grid">
+            {% for photo in order.photos %}
+            <div class="photo-placeholder">📷 {{ loop.index }}</div>
+            {% else %}
+            <div class="empty" style="padding:24px">Фото не загружены</div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>Клиент</h2>
+          <div class="info-row">
+            <span class="label">Имя</span>
+            <span>{{ order.user.first_name or '—' }} {{ order.user.last_name or '' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Username</span>
+            <span>{% if order.user.username %}<a href="https://t.me/{{ order.user.username }}">@{{ order.user.username }}</a>{% else %}—{% endif %}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Telegram ID</span>
+            <span><code>{{ order.user.telegram_id }}</code></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Изменить статус</h2>
+          <form method="post" action="/orders/{{ order.id }}/status">
+            <div class="form-group">
+              <label for="status">Статус</label>
+              <select id="status" name="status">
+                {% for s in statuses %}
+                <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>{{ status_labels[s] }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="admin_note">Заметка (не отправляется клиенту)</label>
+              <textarea id="admin_note" name="admin_note">{{ order.admin_note or '' }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Сохранить</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Написать клиенту</h2>
+          <form method="post" action="/orders/{{ order.id }}/message">
+            <div class="form-group">
+              <label for="message">Сообщение</label>
+              <textarea id="message" name="message" placeholder="Здравствуйте! Ваша заявка принята..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">Отправить в Telegram</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

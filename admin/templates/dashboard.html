@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Заявки — Админка</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎬 Заявки на видеоролики</h1>
+      <div class="header-actions">
+        <a href="/logout" class="btn btn-secondary">Выйти</a>
+      </div>
+    </header>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="number">{{ counts.get('new', 0) }}</div>
+        <div class="label">Новые</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">{{ counts.get('in_progress', 0) }}</div>
+        <div class="label">В работе</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">{{ counts.get('completed', 0) }}</div>
+        <div class="label">Готово</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">{{ counts.get('cancelled', 0) }}</div>
+        <div class="label">Отменено</div>
+      </div>
+    </div>
+
+    <div class="filters">
+      <a href="/" class="filter-btn {% if not status_filter %}active{% endif %}">Все</a>
+      {% for s in statuses %}
+      <a href="/?status_filter={{ s }}" class="filter-btn {% if status_filter == s %}active{% endif %}">
+        {{ status_labels[s] }}
+      </a>
+      {% endfor %}
+    </div>
+
+    {% if orders %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Клиент</th>
+          <th>Ссылка</th>
+          <th>Фото</th>
+          <th>Статус</th>
+          <th>Дата</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr onclick="window.location='/orders/{{ order.id }}'" style="cursor:pointer">
+          <td><a href="/orders/{{ order.id }}">#{{ order.id }}</a></td>
+          <td>
+            {{ order.user.first_name or '' }} {{ order.user.last_name or '' }}
+            {% if order.user.username %}<br><small style="color:var(--muted)">@{{ order.user.username }}</small>{% endif %}
+          </td>
+          <td>
+            {% if order.link %}
+            <a href="{{ order.link }}" target="_blank" onclick="event.stopPropagation()">
+              {{ order.link[:40] }}{% if order.link|length > 40 %}...{% endif %}
+            </a>
+            {% else %}—{% endif %}
+          </td>
+          <td>{{ order.photos|length }}</td>
+          <td><span class="badge {{ status_badge[order.status] }}">{{ status_labels[order.status] }}</span></td>
+          <td>{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">Заявок пока нет</div>
+    {% endif %}
+  </div>
+</body>
+</html>
