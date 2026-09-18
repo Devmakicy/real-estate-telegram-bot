@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"
+DATA_DIR = Path(os.getenv("RAILWAY_VOLUME_MOUNT_PATH", BASE_DIR / "data"))
 UPLOADS_DIR = DATA_DIR / "uploads"
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
@@ -28,7 +28,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me")
 
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite+aiosqlite:///{DATA_DIR / 'bot.db'}")
 WEB_HOST = os.getenv("WEB_HOST", "0.0.0.0")
-WEB_PORT = int(os.getenv("WEB_PORT", "8080"))
+WEB_PORT = int(os.getenv("PORT", os.getenv("WEB_PORT", "8080")))
 
 WELCOME_TEXT = """📋 Чтобы начать, отправьте мне прямо в этот чат:
 

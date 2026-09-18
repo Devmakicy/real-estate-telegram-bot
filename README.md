@@ -115,3 +115,24 @@ python run.py web   # только админка на http://localhost:8080
 - Фильтр по статусам
 - Карточка заявки: данные клиента, ссылка, комментарий
 - Форма смены статуса и отправки сообщения
+
+## Деплой на Railway (через GitHub)
+
+Репозиторий: https://github.com/Devmakicy/real-estate-telegram-bot
+
+1. Откройте [Railway](https://railway.com/) → **Login with GitHub**
+2. **New Project** → **Deploy from GitHub repo**
+3. Выберите `Devmakicy/real-estate-telegram-bot`
+4. В **Variables** добавьте:
+   - `BOT_TOKEN`
+   - `ADMIN_IDS`
+   - `ADMIN_GROUP_ID`
+   - `BOT_DISPLAY_NAME`
+   - `SECRET_KEY`
+   - `ADMIN_USERNAME`, `ADMIN_PASSWORD` (для веб-админки)
+5. **Settings → Deploy** → Start Command: `python run.py bot`
+6. (Рекомендуется) **Add Volume** → mount `/app/data` для сохранения SQLite
+
+Для веб-админки создайте **второй сервис** из того же репо:
+- Start Command: `python run.py web`
+- Включите **Public Networking** → получите URL
